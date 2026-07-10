@@ -120,7 +120,8 @@ export default function MenuCliente({ restaurante, categorias, productos }: Prop
           <button className="w-9 h-9 flex items-center justify-center rounded-xl bg-gray-50 text-lg">☰</button>
           <div className="flex-1 flex justify-center">
             {restaurante.logo_url
-              ? <img src={restaurante.logo_url} alt={restaurante.nombre} style={{height:46,width:"auto",maxWidth:160,objectFit:"contain",display:"block"}}/>
+              ? <img src={restaurante.logo_url} alt={restaurante.nombre}
+                style={{maxHeight:58,maxWidth:200,width:"auto",height:"auto",display:"block"}}/>
               : <span className="text-lg font-black text-[#111]">{restaurante.nombre}</span>}
           </div>
           <button onClick={()=>setCartOpen(true)} className="relative w-9 h-9 flex items-center justify-center rounded-xl bg-gray-50 text-lg">
@@ -141,7 +142,8 @@ export default function MenuCliente({ restaurante, categorias, productos }: Prop
           </div>
           <div className="flex-1 flex justify-center items-center">
             {restaurante.logo_url
-              ? <img src={restaurante.logo_url} alt={restaurante.nombre} style={{height:64,width:"auto",maxWidth:220,objectFit:"contain",display:"block"}}/>
+              ? <img src={restaurante.logo_url} alt={restaurante.nombre}
+                style={{maxHeight:90,maxWidth:300,width:"auto",height:"auto",display:"block"}}/>
               : <h1 className="text-2xl font-black text-[#111] m-0">{restaurante.nombre}</h1>}
           </div>
           <div className="flex items-center gap-4 min-w-[200px] justify-end">
@@ -172,6 +174,23 @@ export default function MenuCliente({ restaurante, categorias, productos }: Prop
         </div>
       </div>
 
+
+      {/* ── BANNER CERRADO ── */}
+      {!abierto && (
+        <div className="mx-3 md:mx-5 mt-3" style={{maxWidth:1280,margin:"12px auto 0",padding:"0 12px"}}>
+          <div style={{background:"#FEF2F2",border:"1.5px solid #FECACA",borderRadius:14,padding:"14px 18px",display:"flex",alignItems:"center",gap:12}}>
+            <div style={{width:36,height:36,borderRadius:"50%",background:"#EF4444",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round">
+                <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+              </svg>
+            </div>
+            <div>
+              <p style={{fontSize:14,fontWeight:800,color:"#991B1B",margin:"0 0 2px"}}>Restaurante cerrado</p>
+              <p style={{fontSize:12,color:"#B91C1C",margin:0}}>Horario de atención: {horario}. Vuelve pronto.</p>
+            </div>
+          </div>
+        </div>
+      )}
       {/* CATEGORÍAS MÓVIL — círculos */}
       <div className="md:hidden mt-4 overflow-x-auto scrollbar-hide" style={{padding:"0 12px"}}>
         <div className="flex gap-5 pb-2">
@@ -269,9 +288,12 @@ export default function MenuCliente({ restaurante, categorias, productos }: Prop
                           </div>
                           <div className="flex items-center justify-between gap-2">
                             <span className="text-[16px] font-black text-[#111]">${prod.precio.toFixed(2)}</span>
-                            <button onClick={e=>{e.stopPropagation();setModalProd(prod)}}
-                              className="flex-shrink-0 px-3 py-1.5 bg-[#111] text-white text-[12px] font-bold rounded-lg border-none cursor-pointer">
-                              + Agregar
+                            <button
+                              onClick={e=>{e.stopPropagation(); if(abierto) setModalProd(prod)}}
+                              disabled={!abierto}
+                              className="flex-shrink-0 px-3 py-1.5 text-[12px] font-bold rounded-lg border-none"
+                              style={{background:abierto?"#111":"#E5E5E5",color:abierto?"#fff":"#aaa",cursor:abierto?"pointer":"not-allowed"}}>
+                              {abierto ? "+ Agregar" : "Cerrado"}
                             </button>
                           </div>
                         </div>

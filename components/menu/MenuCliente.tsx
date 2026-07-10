@@ -26,6 +26,33 @@ const TABS = [
   { id:"pedido",label:"Mi pedido", icon:"👤" },
 ]
 
+
+// ── HORARIO HELPER ────────────────────────────────────────────────
+function toMinutes(t: string): number {
+  const m = t.trim().match(/(\d+):(\d+)\s*(AM|PM)/i)
+  if (!m) return -1
+  let h = parseInt(m[1])
+  const min = parseInt(m[2])
+  const p = m[3].toUpperCase()
+  if (p === "PM" && h !== 12) h += 12
+  if (p === "AM" && h === 12) h = 0
+  return h * 60 + min
+}
+function checkOpen(horario: string): boolean {
+  try {
+    const sep = horario.includes("–") ? "–" : horario.includes("-") ? "-" : null
+    if (!sep) return true
+    const [openStr, closeStr] = horario.split(sep).map(s => s.trim())
+    const openMin  = toMinutes(openStr)
+    const closeMin = toMinutes(closeStr)
+    if (openMin < 0 || closeMin < 0) return true
+    const now = new Date()
+    const cur = now.getHours() * 60 + now.getMinutes()
+    if (closeMin < openMin) return cur >= openMin || cur < closeMin
+    return cur >= openMin && cur < closeMin
+  } catch { return true }
+}
+
 export default function MenuCliente({ restaurante, categorias, productos }: Props) {
   const [carrito, setCarrito]   = useState<CartItem[]>([])
   const [modalProd, setModalProd] = useState<Producto | null>(null)
@@ -77,6 +104,7 @@ export default function MenuCliente({ restaurante, categorias, productos }: Prop
   }
 
   const horario = restaurante.config?.contenido?.horario || "1:00 PM – 11:00 PM"
+  const abierto  = checkOpen(horario)
   const dir     = restaurante.config?.contenido?.direccion || "José Cardel, Veracruz"
   const insta   = restaurante.config?.contenido?.instagram
 
@@ -92,7 +120,7 @@ export default function MenuCliente({ restaurante, categorias, productos }: Prop
           <button className="w-9 h-9 flex items-center justify-center rounded-xl bg-gray-50 text-lg">☰</button>
           <div className="flex-1 flex justify-center">
             {restaurante.logo_url
-              ? <Image src={restaurante.logo_url} alt={restaurante.nombre} width={130} height={50} style={{objectFit:"contain",maxHeight:48,width:"auto"}}/>
+              ? <img src={restaurante.logo_url} alt={restaurante.nombre} style={{height:46,width:"auto",maxWidth:160,objectFit:"contain",display:"block"}}/>
               : <span className="text-lg font-black text-[#111]">{restaurante.nombre}</span>}
           </div>
           <button onClick={()=>setCartOpen(true)} className="relative w-9 h-9 flex items-center justify-center rounded-xl bg-gray-50 text-lg">
@@ -108,12 +136,12 @@ export default function MenuCliente({ restaurante, categorias, productos }: Prop
             <div>
               <p className="text-[11px] text-gray-400 font-medium m-0">Horario</p>
               <p className="text-[13px] font-bold text-[#111] m-0">{horario}</p>
-              <p className="text-[11px] text-green-500 font-semibold m-0">Abierto ahora</p>
+              <p className={`text-[11px] font-semibold m-0 ${abierto ? "text-green-500" : "text-red-500"}`}>{abierto ? "Abierto ahora" : "Cerrado"}</p>
             </div>
           </div>
           <div className="flex-1 flex justify-center items-center">
             {restaurante.logo_url
-              ? <Image src={restaurante.logo_url} alt={restaurante.nombre} width={180} height={68} style={{objectFit:"contain",maxHeight:68,width:"auto",display:"block"}}/>
+              ? <img src={restaurante.logo_url} alt={restaurante.nombre} style={{height:64,width:"auto",maxWidth:220,objectFit:"contain",display:"block"}}/>
               : <h1 className="text-2xl font-black text-[#111] m-0">{restaurante.nombre}</h1>}
           </div>
           <div className="flex items-center gap-4 min-w-[200px] justify-end">
@@ -135,7 +163,7 @@ export default function MenuCliente({ restaurante, categorias, productos }: Prop
       <div className="md:hidden mx-3 mt-3 bg-white rounded-2xl px-4 py-3 flex items-center justify-between shadow-sm">
         <div className="flex items-center gap-2">
           <span className="text-base">🕐</span>
-          <div><p className="text-[11px] text-gray-400 m-0">Horario</p><p className="text-[13px] font-bold text-[#111] m-0">{horario}</p><p className="text-[11px] text-green-500 font-semibold m-0">Abierto ahora</p></div>
+          <div><p className="text-[11px] text-gray-400 m-0">Horario</p><p className="text-[13px] font-bold text-[#111] m-0">{horario}</p><p className={`text-[11px] font-semibold m-0 ${abierto ? "text-green-500" : "text-red-500"}`}>{abierto ? "Abierto ahora" : "Cerrado"}</p></div>
         </div>
         <div className="w-px h-10 bg-gray-100"/>
         <div className="flex items-center gap-2">

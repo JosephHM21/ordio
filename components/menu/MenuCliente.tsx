@@ -64,14 +64,23 @@ export default function MenuCliente({ restaurante, categorias, productos }: Prop
   const [tab, setTab] = useState("menu")
   const supabase = createClient()
   const router = useRouter()
+  const [promociones, setPromociones] = useState<any[]>([])
+  const [promoIdx, setPromoIdx]         = useState(0)
 
   useEffect(() => {
     const ch = supabase.channel("live")
       .on("postgres_changes",{event:"*",schema:"public",table:"pedidos",filter:`restaurante_id=eq.${restaurante.id}`}, fetchP)
       .subscribe()
     fetchP()
+    fetchPromos()
     return () => { supabase.removeChannel(ch) }
   }, [])
+
+  async function fetchPromos() {
+    const {data} = await supabase.from("promociones").select("*")
+      .eq("restaurante_id",restaurante.id).eq("activo",true).order("orden")
+    if(data) setPromociones(data)
+  }
 
   async function fetchP() {
     const { count } = await supabase.from("pedidos").select("id",{count:"exact"})
@@ -102,6 +111,12 @@ export default function MenuCliente({ restaurante, categorias, productos }: Prop
     setCartOpen(false)
     router.push(`/${restaurante.slug}/pedido/${data.id}`)
   }
+
+  useEffect(()=>{
+    if(promociones.length<=1) return
+    const t = setInterval(()=> setPromoIdx(i=>(i+1)%promociones.length), 4500)
+    return ()=> clearInterval(t)
+  },[promociones.length])
 
   const horario = restaurante.config?.contenido?.horario || "1:00 PM – 11:00 PM"
   const abierto  = checkOpen(horario)
@@ -191,6 +206,56 @@ export default function MenuCliente({ restaurante, categorias, productos }: Prop
           </div>
         </div>
       )}
+
+      {/* ── CARRUSEL DE PROMOCIONES ── */}
+      {promociones.length > 0 && (
+        <div style={{maxWidth:1280,margin:"12px auto 0",padding:"0 12px"}}>
+          {/* Desktop */}
+          <div className="hidden md:block" style={{borderRadius:16,overflow:"hidden",background:"#F0F0F0",aspectRatio:"21/5",position:"relative"}}>
+            {promociones.map((p:any,i:number)=>(
+              <div key={p.id} style={{position:"absolute",inset:0,opacity:i===promoIdx?1:0,transition:"opacity 0.6s ease"}}>
+                {p.imagen_url
+                  ? <img src={p.imagen_url} alt={p.titulo} style={{width:"100%",height:"100%",objectFit:"cover"}}/>
+                  : <div style={{width:"100%",height:"100%",background:"linear-gradient(135deg,#FF8C00,#FF5500)",display:"flex",alignItems:"center",justifyContent:"center"}}>
+                      <p style={{fontSize:22,fontWeight:900,color:"#fff",margin:0,padding:"0 32px",textAlign:"center"}}>{p.titulo}</p>
+                    </div>}
+                <div style={{position:"absolute",inset:0,background:"linear-gradient(to right,rgba(0,0,0,0.35) 0%,transparent 50%)"}}/>
+                <div style={{position:"absolute",left:32,top:"50%",transform:"translateY(-50%)"}}>
+                  <p style={{fontSize:20,fontWeight:900,color:"#fff",margin:"0 0 4px",textShadow:"0 2px 8px rgba(0,0,0,0.4)"}}>{p.titulo}</p>
+                  {p.descripcion&&<p style={{fontSize:13,color:"rgba(255,255,255,0.9)",margin:0}}>{p.descripcion}</p>}
+                </div>
+              </div>
+            ))}
+            {promociones.length>1&&(
+              <div style={{position:"absolute",bottom:10,left:0,right:0,display:"flex",justifyContent:"center",gap:6,zIndex:2}}>
+                {promociones.map((_:any,i:number)=>(
+                  <button key={i} onClick={()=>setPromoIdx(i)} style={{width:i===promoIdx?20:6,height:6,borderRadius:3,background:i===promoIdx?"#fff":"rgba(255,255,255,0.5)",border:"none",cursor:"pointer",padding:0,transition:"all 0.3s"}}/>
+                ))}
+              </div>
+            )}
+          </div>
+          {/* Móvil */}
+          <div className="md:hidden" style={{borderRadius:14,overflow:"hidden",background:"#F0F0F0",aspectRatio:"16/7",position:"relative"}}>
+            {promociones.map((p:any,i:number)=>(
+              <div key={p.id} style={{position:"absolute",inset:0,opacity:i===promoIdx?1:0,transition:"opacity 0.6s ease"}}>
+                {p.imagen_url
+                  ? <img src={p.imagen_url} alt={p.titulo} style={{width:"100%",height:"100%",objectFit:"cover"}}/>
+                  : <div style={{width:"100%",height:"100%",background:"linear-gradient(135deg,#FF8C00,#FF5500)",display:"flex",alignItems:"center",justifyContent:"center",padding:16}}>
+                      <p style={{fontSize:16,fontWeight:900,color:"#fff",margin:0,textAlign:"center"}}>{p.titulo}</p>
+                    </div>}
+              </div>
+            ))}
+            {promociones.length>1&&(
+              <div style={{position:"absolute",bottom:8,left:0,right:0,display:"flex",justifyContent:"center",gap:5,zIndex:2}}>
+                {promociones.map((_:any,i:number)=>(
+                  <button key={i} onClick={()=>setPromoIdx(i)} style={{width:i===promoIdx?16:5,height:5,borderRadius:3,background:i===promoIdx?"#fff":"rgba(255,255,255,0.5)",border:"none",cursor:"pointer",padding:0,transition:"all 0.3s"}}/>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* CATEGORÍAS MÓVIL — círculos */}
       <div className="md:hidden mt-4 overflow-x-auto scrollbar-hide" style={{padding:"0 12px"}}>
         <div className="flex gap-5 pb-2">

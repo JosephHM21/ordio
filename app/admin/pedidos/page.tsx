@@ -86,7 +86,7 @@ export default function PedidosPage() {
           <p style={{fontSize:13,color:"#888",margin:0}}>Se actualizan automáticamente</p>
         </div>
         {/* KPI rápida */}
-        <div style={{display:"flex",gap:8"}}>
+        <div style={{display:"flex",gap:8}}>
           {["pendiente","en_preparacion"].map(k=>(
             <div key={k} style={{background:"#fff",border:"1.5px solid #F0F0F0",borderRadius:12,padding:"8px 16px",textAlign:"center"}}>
               <p style={{fontSize:20,fontWeight:900,color:k==="pendiente"?"#D97706":"#EA580C",margin:"0 0 2px"}}>{counts[k]||0}</p>

@@ -1,5 +1,6 @@
 "use client"
 import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
 import Image from "next/image"
 import { createClient } from "@/lib/supabase"
 import { SABORES, calcularTiempoEstimado, buildWhatsAppMessage } from "@/lib/utils"
@@ -35,6 +36,7 @@ export default function MenuCliente({ restaurante, categorias, productos }: Prop
   const [toast, setToast] = useState("")
   const [tab, setTab] = useState("menu")
   const supabase = createClient()
+  const router = useRouter()
 
   useEffect(() => {
     const ch = supabase.channel("live")
@@ -68,7 +70,10 @@ export default function MenuCliente({ restaurante, categorias, productos }: Prop
     if(error||!data){msg("Error al registrar");return}
     const text = buildWhatsAppMessage(restaurante,carrito,{nombre,direccion,notas},total,tiempo,data.id)
     window.open(`https://wa.me/52${restaurante.whatsapp}?text=${encodeURIComponent(text)}`,"_blank")
-    setCarrito([]); setOrderOpen(false); setCartOpen(false); msg("¡Pedido enviado!")
+    setCarrito([])
+    setOrderOpen(false)
+    setCartOpen(false)
+    router.push(`/${restaurante.slug}/pedido/${data.id}`)
   }
 
   const horario = restaurante.config?.contenido?.horario || "1:00 PM – 11:00 PM"
